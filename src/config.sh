@@ -6,6 +6,7 @@ XGIT_RUNTIME_DIR="$XGIT_HOME/runtime"
 XGIT_CACHE_DIR="$XGIT_HOME/cache"
 XGIT_DOCKER_DIR="$XGIT_HOME/docker"
 XGIT_SSH_DIR="$XGIT_HOME/ssh"
+XGIT_CONFIG_FILE=".git/xgitconfig"
 
 xgit_config_ensure_dirs() {
     mkdir -p "$XGIT_IDENTITIES_DIR" "$XGIT_RUNTIME_DIR" "$XGIT_CACHE_DIR" "$XGIT_DOCKER_DIR" "$XGIT_SSH_DIR"
@@ -15,28 +16,28 @@ xgit_config_ensure_dirs() {
 }
 
 xgit_config_read_xgitconf() {
-    if [ ! -f ".xgitconf" ]; then
+    if [ ! -f "$XGIT_CONFIG_FILE" ]; then
         echo "Error: this repository is not managed by xgit."
-        echo "Missing .xgitconf file."
+        echo "Missing ${XGIT_CONFIG_FILE} file."
         echo "Use \`xgit clone\` or \`xgit init\` first."
         exit 1
     fi
 
     local managed
-    managed=$(xgit_config_ini_get ".xgitconf" "xgit" "managed")
+    managed=$(xgit_config_ini_get "$XGIT_CONFIG_FILE" "xgit" "managed")
     if [ "$managed" != "true" ]; then
         echo "Error: this repository is not managed by xgit."
-        echo "Missing .xgitconf file."
+        echo "Missing ${XGIT_CONFIG_FILE} file."
         echo "Use \`xgit clone\` or \`xgit init\` first."
         exit 1
     fi
 
     local identity
-    identity=$(xgit_config_ini_get ".xgitconf" "xgit" "identity")
+    identity=$(xgit_config_ini_get "$XGIT_CONFIG_FILE" "xgit" "identity")
     local name
-    name=$(xgit_config_ini_get ".xgitconf" "user" "name")
+    name=$(xgit_config_ini_get "$XGIT_CONFIG_FILE" "user" "name")
     local email
-    email=$(xgit_config_ini_get ".xgitconf" "user" "email")
+    email=$(xgit_config_ini_get "$XGIT_CONFIG_FILE" "user" "email")
 
     echo "$identity|$name|$email"
 }
@@ -49,7 +50,7 @@ xgit_config_write_xgitconf() {
     local email
     email="$3"
 
-    cat > .xgitconf << XEOF
+    cat > "$XGIT_CONFIG_FILE" << XEOF
 [xgit]
 managed = true
 identity = $identity

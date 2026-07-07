@@ -192,7 +192,7 @@ xgit_commands_clone_execute() {
 xgit_commands_init() {
     xgit_config_ensure_dirs
 
-    if [ -f ".xgitconf" ]; then
+    if [ -f "$XGIT_CONFIG_FILE" ]; then
         echo "Error: this directory is already managed by xgit."
         exit 1
     fi
@@ -471,8 +471,8 @@ xgit_commands_auth() {
             ;;
         status|"")
             local info
-            if [ ! -f ".xgitconf" ]; then
-                echo "No .xgitconf found in current directory."
+            if [ ! -f "$XGIT_CONFIG_FILE" ]; then
+                echo "No $XGIT_CONFIG_FILE found in current directory."
                 echo "Run \`xgit clone\` or \`xgit init\` first."
                 exit 1
             fi

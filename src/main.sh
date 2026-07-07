@@ -31,7 +31,7 @@ xgit_print_usage() {
 
 xgit_print_error_no_config() {
     echo "Error: this directory is not managed by xgit."
-    echo "Missing .xgitconf file."
+    echo "Missing ${XGIT_CONFIG_FILE} file."
     echo ""
     echo "Use one of:"
     echo "  xgit clone <repo-url>      Clone a repository"
@@ -69,59 +69,59 @@ main() {
             xgit_commands_init "$@"
             ;;
         status)
-            [ ! -f ".xgitconf" ] && xgit_print_error_no_config
+            [ ! -f "$XGIT_CONFIG_FILE" ] && xgit_print_error_no_config
             xgit_docker_check
             xgit_docker_image_ensure
             xgit_commands_status "$@"
             ;;
         add)
-            [ ! -f ".xgitconf" ] && xgit_print_error_no_config
+            [ ! -f "$XGIT_CONFIG_FILE" ] && xgit_print_error_no_config
             xgit_docker_check
             xgit_docker_image_ensure
             xgit_commands_add "$@"
             ;;
         commit|ci)
-            [ ! -f ".xgitconf" ] && xgit_print_error_no_config
+            [ ! -f "$XGIT_CONFIG_FILE" ] && xgit_print_error_no_config
             xgit_docker_check
             xgit_docker_image_ensure
             xgit_commands_commit "$@"
             ;;
         push)
-            [ ! -f ".xgitconf" ] && xgit_print_error_no_config
+            [ ! -f "$XGIT_CONFIG_FILE" ] && xgit_print_error_no_config
             xgit_docker_check
             xgit_docker_image_ensure
             xgit_commands_push "$@"
             ;;
         pull)
-            [ ! -f ".xgitconf" ] && xgit_print_error_no_config
+            [ ! -f "$XGIT_CONFIG_FILE" ] && xgit_print_error_no_config
             xgit_docker_check
             xgit_docker_image_ensure
             xgit_commands_pull "$@"
             ;;
         log)
-            [ ! -f ".xgitconf" ] && xgit_print_error_no_config
+            [ ! -f "$XGIT_CONFIG_FILE" ] && xgit_print_error_no_config
             xgit_docker_check
             xgit_docker_image_ensure
             xgit_commands_log "$@"
             ;;
         remote)
-            [ ! -f ".xgitconf" ] && xgit_print_error_no_config
+            [ ! -f "$XGIT_CONFIG_FILE" ] && xgit_print_error_no_config
             xgit_docker_check
             xgit_docker_image_ensure
             xgit_commands_remote "$@"
             ;;
         shell)
-            [ ! -f ".xgitconf" ] && xgit_print_error_no_config
+            [ ! -f "$XGIT_CONFIG_FILE" ] && xgit_print_error_no_config
             xgit_docker_check
             xgit_docker_image_ensure
             xgit_commands_shell "$@"
             ;;
         auth)
-            [ ! -f ".xgitconf" ] && xgit_print_error_no_config
+            [ ! -f "$XGIT_CONFIG_FILE" ] && xgit_print_error_no_config
             xgit_commands_auth "$@"
             ;;
         *)
-            if [ -f ".xgitconf" ]; then
+            if [ -f "$XGIT_CONFIG_FILE" ]; then
                 local info
                 local identity_label
                 local identity_name

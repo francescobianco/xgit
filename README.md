@@ -45,7 +45,7 @@ You will be guided through an interactive identity selection:
 - Choose an existing identity from your global identity store
 - Or create a new identity with a label, name, and email
 
-After cloning, a `.xgitconf` file is created in the repository root, binding it to the chosen identity.
+After cloning, a `.git/xgitconfig` file is created inside the repository, binding it to the chosen identity.
 
 ### Initialize a new repository
 
@@ -76,9 +76,9 @@ Opens a bash shell inside the Docker container with the repository's identity al
 
 ## How it works
 
-### .xgitconf
+### .git/xgitconfig
 
-Each managed repository contains a `.xgitconf` file:
+Each managed repository contains a `.git/xgitconfig` file:
 
 ```ini
 [xgit]
