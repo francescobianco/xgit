@@ -199,12 +199,13 @@ XEOF
     local token
     token=$(xgit_config_get_token "$identity")
     if [ -n "$token" ]; then
-        cat >> "$runtime_dir/.gitconfig" << XEOF
-[url "https://x-access-token:${token}@github.com"]
-	insteadOf = https://github.com
-[url "https://x-access-token:${token}@api.github.com"]
-	insteadOf = https://api.github.com
+        echo "$token" > "$runtime_dir/.token"
+        chmod 600 "$runtime_dir/.token"
+        cat > "$runtime_dir/git-askpass.sh" << XEOF
+#!/usr/bin/env bash
+cat /xgit-home/runtime/${identity}/.token
 XEOF
+        chmod +x "$runtime_dir/git-askpass.sh"
     fi
 }
 

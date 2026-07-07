@@ -79,6 +79,7 @@ xgit_docker_run() {
         -e XGIT_ACTIVE=1 \
         -e GIT_CONFIG_GLOBAL="/xgit-home/runtime/$identity/.gitconfig" \
         -e GIT_CONFIG_NOSYSTEM=1 \
+        -e GIT_ASKPASS="/xgit-home/runtime/${identity}/git-askpass.sh" \
         -w /repo \
         $auth_opts \
         "$XGIT_DOCKER_IMAGE" \
@@ -106,6 +107,7 @@ xgit_docker_run_cmd() {
         -e XGIT_ACTIVE=1 \
         -e GIT_CONFIG_GLOBAL="/xgit-home/runtime/$identity/.gitconfig" \
         -e GIT_CONFIG_NOSYSTEM=1 \
+        -e GIT_ASKPASS="/xgit-home/runtime/${identity}/git-askpass.sh" \
         -w /repo \
         $auth_opts \
         "$XGIT_DOCKER_IMAGE" \
@@ -132,6 +134,7 @@ xgit_docker_shell() {
         -e XGIT_ACTIVE=1 \
         -e GIT_CONFIG_GLOBAL="/xgit-home/runtime/$identity/.gitconfig" \
         -e GIT_CONFIG_NOSYSTEM=1 \
+        -e GIT_ASKPASS="/xgit-home/runtime/${identity}/git-askpass.sh" \
         -w /repo \
         $auth_opts \
         "$XGIT_DOCKER_IMAGE" \
@@ -172,6 +175,7 @@ xgit_docker_clone() {
         -e XGIT_ACTIVE=1 \
         -e GIT_CONFIG_GLOBAL="/xgit-home/runtime/$identity/.gitconfig" \
         -e GIT_CONFIG_NOSYSTEM=1 \
+        -e GIT_ASKPASS="/xgit-home/runtime/${identity}/git-askpass.sh" \
         -w /repo \
         $auth_opts \
         "$XGIT_DOCKER_IMAGE" \
