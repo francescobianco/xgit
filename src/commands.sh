@@ -154,8 +154,8 @@ xgit_commands_clone_execute() {
 
     echo "Cloning repository..."
     local output
-    output=$(xgit_docker_clone "$identity_label" "$repo_url" "$target_dir" 2>&1)
     local clone_exit
+    output=$(xgit_docker_clone "$identity_label" "$repo_url" "$target_dir" 2>&1)
     clone_exit=$?
     echo "$output"
     if [ $clone_exit -ne 0 ]; then
@@ -362,8 +362,8 @@ xgit_commands_push() {
     xgit_hooks_verify
 
     local output
-    output=$(xgit_docker_run "$identity_label" push "$@" 2>&1)
     local exit_code
+    output=$(xgit_docker_run "$identity_label" push "$@" 2>&1)
     exit_code=$?
     echo "$output"
     if [ $exit_code -ne 0 ] && xgit_docker_is_auth_error "$output"; then
@@ -385,8 +385,8 @@ xgit_commands_pull() {
     xgit_config_ensure_runtime_dir "$identity_label" "$identity_name" "$identity_email"
 
     local output
-    output=$(xgit_docker_run "$identity_label" pull "$@" 2>&1)
     local exit_code
+    output=$(xgit_docker_run "$identity_label" pull "$@" 2>&1)
     exit_code=$?
     echo "$output"
     if [ $exit_code -ne 0 ] && xgit_docker_is_auth_error "$output"; then
