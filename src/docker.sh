@@ -59,6 +59,7 @@ xgit_docker_run() {
     fi
 
     docker run --rm \
+        --user "$(id -u):$(id -g)" \
         -v "$PWD:/repo" \
         -v "$XGIT_HOME:/xgit-home" \
         -e HOME="/xgit-home/runtime/$identity" \
@@ -81,6 +82,7 @@ xgit_docker_shell() {
     mkdir -p "$runtime_dir"
 
     docker run --rm -it \
+        --user "$(id -u):$(id -g)" \
         -v "$PWD:/repo" \
         -v "$XGIT_HOME:/xgit-home" \
         -e HOME="/xgit-home/runtime/$identity" \
@@ -116,6 +118,7 @@ xgit_docker_clone() {
     actual_target="$PWD/$target_dir"
 
     docker run --rm \
+        --user "$(id -u):$(id -g)" \
         -v "$PWD:/repo" \
         -v "$XGIT_HOME:/xgit-home" \
         -e HOME="/xgit-home/runtime/$identity" \
