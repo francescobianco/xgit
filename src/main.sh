@@ -21,6 +21,7 @@ xgit_print_usage() {
     echo "  log     [options]          Show commit logs"
     echo "  remote  [options]          Manage set of tracked repositories"
     echo "  shell                      Open an interactive shell in the container"
+    echo "  auth    <token|ssh>        Configure GitHub authentication"
     echo ""
     echo "For more info: https://github.com/user/xgit"
 }
@@ -111,6 +112,10 @@ main() {
             xgit_docker_check
             xgit_docker_image_ensure
             xgit_commands_shell "$@"
+            ;;
+        auth)
+            [ ! -f ".xgitconf" ] && xgit_print_error_no_config
+            xgit_commands_auth "$@"
             ;;
         *)
             echo "Error: unknown command '$cmd'"

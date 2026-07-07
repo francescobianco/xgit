@@ -153,7 +153,17 @@ xgit_commands_clone_execute() {
     xgit_config_ensure_runtime_dir "$identity_label" "$identity_name" "$identity_email"
 
     echo "Cloning repository..."
-    xgit_docker_clone "$identity_label" "$repo_url" "$target_dir"
+    local output
+    output=$(xgit_docker_clone "$identity_label" "$repo_url" "$target_dir" 2>&1)
+    local clone_exit
+    clone_exit=$?
+    echo "$output"
+    if [ $clone_exit -ne 0 ]; then
+        if xgit_docker_is_auth_error "$output"; then
+            xgit_docker_print_auth_help "$identity_label"
+        fi
+        exit $clone_exit
+    fi
 
     local actual_dir
     if [ -n "$target_dir" ]; then
@@ -342,35 +352,57 @@ xgit_commands_push() {
     local info
     info=$(xgit_config_read_xgitconf)
     local identity_label
-    identity_label="${info%%|*}"
-    local rem
-    rem="${info#*|}"
+    identity_label=$(xgit_info_field "$info" 1)
     local identity_name
-    identity_name="${rem%%|*}"
+    identity_name=$(xgit_info_field "$info" 2)
     local identity_email
-    identity_email="${rem##*|}"
+    identity_email=$(xgit_info_field "$info" 3)
 
     xgit_config_ensure_runtime_dir "$identity_label" "$identity_name" "$identity_email"
     xgit_hooks_verify
 
-    xgit_docker_run "$identity_label" push "$@"
+    local output
+    output=$(xgit_docker_run "$identity_label" push "$@" 2>&1)
+    local exit_code
+    exit_code=$?
+    echo "$output"
+    if [ $exit_code -ne 0 ] && xgit_docker_is_auth_error "$output"; then
+        xgit_docker_print_auth_help "$identity_label"
+    fi
+    return $exit_code
 }
 
 xgit_commands_pull() {
     local info
     info=$(xgit_config_read_xgitconf)
     local identity_label
-    identity_label="${info%%|*}"
-    local rem
-    rem="${info#*|}"
+    identity_label=$(xgit_info_field "$info" 1)
     local identity_name
-    identity_name="${rem%%|*}"
+    identity_name=$(xgit_info_field "$info" 2)
     local identity_email
-    identity_email="${rem##*|}"
+    identity_email=$(xgit_info_field "$info" 3)
 
     xgit_config_ensure_runtime_dir "$identity_label" "$identity_name" "$identity_email"
 
-    xgit_docker_run "$identity_label" pull "$@"
+    local output
+    output=$(xgit_docker_run "$identity_label" pull "$@" 2>&1)
+    local exit_code
+    exit_code=$?
+    echo "$output"
+    if [ $exit_code -ne 0 ] && xgit_docker_is_auth_error "$output"; then
+        xgit_docker_print_auth_help "$identity_label"
+    fi
+    return $exit_code
+}
+
+xgit_info_field() {
+    local info
+    info="$1"
+    local n
+    n="$2"
+    local field
+    field=$(echo "$info" | cut -d'|' -f"$n")
+    echo "$field"
 }
 
 xgit_commands_log() {
@@ -426,4 +458,126 @@ xgit_commands_shell() {
     echo ""
 
     xgit_docker_shell "$identity_label"
+}
+
+xgit_commands_auth() {
+    local subcmd
+    subcmd="$1"
+    shift 2>/dev/null || true
+
+    case "$subcmd" in
+        token)
+            xgit_commands_auth_token "$@"
+            ;;
+        ssh)
+            xgit_commands_auth_ssh "$@"
+            ;;
+        status|"")
+            local info
+            if [ ! -f ".xgitconf" ]; then
+                echo "No .xgitconf found in current directory."
+                echo "Run \`xgit clone\` or \`xgit init\` first."
+                exit 1
+            fi
+            info=$(xgit_config_read_xgitconf)
+            local identity_label
+            identity_label=$(xgit_info_field "$info" 1)
+            xgit_config_print_auth_status "$identity_label"
+            echo "To configure authentication:"
+            echo "  xgit auth token   Set/update GitHub Personal Access Token"
+            echo "  xgit auth ssh     Generate and configure SSH key"
+            ;;
+        *)
+            echo "Usage: xgit auth <token|ssh|status>"
+            echo ""
+            echo "  xgit auth           Show authentication status"
+            echo "  xgit auth token     Set GitHub Personal Access Token"
+            echo "  xgit auth ssh       Generate SSH key pair"
+            exit 1
+            ;;
+    esac
+}
+
+xgit_commands_auth_token() {
+    local info
+    info=$(xgit_config_read_xgitconf)
+    local identity_label
+    identity_label=$(xgit_info_field "$info" 1)
+
+    echo "=== GitHub Token Setup ==="
+    echo ""
+    echo "Identity: $identity_label"
+    echo ""
+    echo "Generate a Personal Access Token (classic) at:"
+    echo "  https://github.com/settings/tokens"
+    echo ""
+    echo "Required scopes:"
+    echo "  - repo (Full control of private repositories)"
+    echo "  - workflow (if using GitHub Actions)"
+    echo ""
+    echo -n "Paste your GitHub token: "
+    local token
+    read -s token
+    echo ""
+
+    if [ -z "$token" ]; then
+        echo "Error: token cannot be empty."
+        exit 1
+    fi
+
+    xgit_config_set_token "$identity_label" "$token"
+
+    local identity_name
+    identity_name=$(xgit_info_field "$info" 2)
+    local identity_email
+    identity_email=$(xgit_info_field "$info" 3)
+
+    xgit_config_ensure_runtime_dir "$identity_label" "$identity_name" "$identity_email"
+
+    echo ""
+    echo "Token saved for identity '$identity_label'."
+    echo "You can now push/pull to GitHub repositories."
+    echo ""
+    echo "Verify with: git -c http.https://github.com/.extraheader=\"Authorization: token \$TOKEN\" ls-remote"
+}
+
+xgit_commands_auth_ssh() {
+    local info
+    info=$(xgit_config_read_xgitconf)
+    local identity_label
+    identity_label=$(xgit_info_field "$info" 1)
+
+    echo "=== SSH Key Setup ==="
+    echo ""
+    echo "Identity: $identity_label"
+    echo ""
+
+    if xgit_config_has_ssh_key "$identity_label"; then
+        echo "SSH key already exists for this identity."
+        echo ""
+        local ssh_dir
+        ssh_dir=$(xgit_config_ssh_identity_dir "$identity_label")
+        echo "Public key:"
+        cat "$ssh_dir"/id_*.pub 2>/dev/null
+        echo ""
+        echo -n "Generate a new key? This will overwrite the existing one. [y/N]: "
+        local choice
+        read choice
+        if [ "$choice" != "y" ] && [ "$choice" != "Y" ]; then
+            exit 0
+        fi
+        rm -f "$ssh_dir"/id_*
+    fi
+
+    xgit_config_setup_ssh_key "$identity_label"
+
+    local identity_name
+    identity_name=$(xgit_info_field "$info" 2)
+    local identity_email
+    identity_email=$(xgit_info_field "$info" 3)
+
+    xgit_config_ensure_runtime_dir "$identity_label" "$identity_name" "$identity_email"
+
+    echo ""
+    echo "SSH key configured. Use git@github.com:user/repo.git URLs for SSH access."
 }

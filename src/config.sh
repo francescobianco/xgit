@@ -194,4 +194,121 @@ xgit_config_ensure_runtime_dir() {
 [core]
 	hooksPath = /repo/.git/hooks
 XEOF
+
+    local token
+    token=$(xgit_config_get_token "$identity")
+    if [ -n "$token" ]; then
+        cat >> "$runtime_dir/.gitconfig" << XEOF
+[http "https://github.com"]
+	extraheader = Authorization: token ${token}
+[http "https://api.github.com"]
+	extraheader = Authorization: token ${token}
+XEOF
+    fi
+}
+
+xgit_config_token_file() {
+    local identity
+    identity="$1"
+    echo "$XGIT_IDENTITIES_DIR/${identity}.token"
+}
+
+xgit_config_set_token() {
+    local identity
+    identity="$1"
+    local token
+    token="$2"
+
+    local token_file
+    token_file=$(xgit_config_token_file "$identity")
+    echo "$token" > "$token_file"
+    chmod 600 "$token_file"
+}
+
+xgit_config_get_token() {
+    local identity
+    identity="$1"
+    local token_file
+    token_file=$(xgit_config_token_file "$identity")
+    if [ -f "$token_file" ]; then
+        cat "$token_file"
+    fi
+}
+
+xgit_config_has_token() {
+    local identity
+    identity="$1"
+    local token_file
+    token_file=$(xgit_config_token_file "$identity")
+    [ -f "$token_file" ]
+}
+
+xgit_config_delete_token() {
+    local identity
+    identity="$1"
+    local token_file
+    token_file=$(xgit_config_token_file "$identity")
+    rm -f "$token_file"
+}
+
+xgit_config_ssh_identity_dir() {
+    local identity
+    identity="$1"
+    echo "$XGIT_SSH_DIR/$identity"
+}
+
+xgit_config_has_ssh_key() {
+    local identity
+    identity="$1"
+    local ssh_dir
+    ssh_dir=$(xgit_config_ssh_identity_dir "$identity")
+    [ -f "$ssh_dir/id_ed25519" ] || [ -f "$ssh_dir/id_rsa" ] || [ -f "$ssh_dir/id_ecdsa" ]
+}
+
+xgit_config_setup_ssh_key() {
+    local identity
+    identity="$1"
+    local ssh_dir
+    ssh_dir=$(xgit_config_ssh_identity_dir "$identity")
+    mkdir -p "$ssh_dir"
+    chmod 700 "$ssh_dir"
+
+    echo "Generating SSH key pair for identity '$identity'..."
+    ssh-keygen -t ed25519 -C "xgit-$identity" -f "$ssh_dir/id_ed25519" -N ""
+
+    echo ""
+    echo "SSH key generated:"
+    echo "  Private: $ssh_dir/id_ed25519"
+    echo "  Public:  $ssh_dir/id_ed25519.pub"
+    echo ""
+    echo "Add this public key to your GitHub account:"
+    echo "  https://github.com/settings/keys"
+    echo ""
+    cat "$ssh_dir/id_ed25519.pub"
+}
+
+xgit_config_print_auth_status() {
+    local identity
+    identity="$1"
+
+    echo "Authentication status for '$identity':"
+    echo ""
+
+    if xgit_config_has_token "$identity"; then
+        echo "  GitHub Token : configured"
+    else
+        echo "  GitHub Token : not set"
+    fi
+
+    if xgit_config_has_ssh_key "$identity"; then
+        echo "  SSH Key      : configured"
+        local ssh_dir
+        ssh_dir=$(xgit_config_ssh_identity_dir "$identity")
+        ls -1 "$ssh_dir/" 2>/dev/null | while read -r keyfile; do
+            echo "                 $ssh_dir/$keyfile"
+        done
+    else
+        echo "  SSH Key      : not set"
+    fi
+    echo ""
 }
