@@ -15,6 +15,7 @@ xgit_print_usage() {
     echo "  init                       Initialize a new managed repository"
     echo "  status                     Show working tree status"
     echo "  add     <files...>         Add file contents to the index"
+    echo "  rm      <files...>         Remove files from the working tree"
     echo "  commit  [options]          Record changes to the repository"
     echo "  push    [options]          Update remote refs along with objects"
     echo "  pull    [options]          Fetch and integrate with another repository"
@@ -22,6 +23,8 @@ xgit_print_usage() {
     echo "  remote  [options]          Manage set of tracked repositories"
     echo "  shell                      Open an interactive shell in the container"
     echo "  auth    <token|ssh>        Configure GitHub authentication"
+    echo ""
+    echo "Any other git command (branch, diff, tag, stash, ...) is passed through."
     echo ""
     echo "For more info: https://github.com/user/xgit"
 }
@@ -118,10 +121,26 @@ main() {
             xgit_commands_auth "$@"
             ;;
         *)
-            echo "Error: unknown command '$cmd'"
-            echo ""
-            xgit_print_usage
-            exit 1
+            if [ -f ".xgitconf" ]; then
+                local info
+                local identity_label
+                local identity_name
+                local identity_email
+                info=$(xgit_config_read_xgitconf)
+                identity_label=$(xgit_info_field "$info" 1)
+                identity_name=$(xgit_info_field "$info" 2)
+                identity_email=$(xgit_info_field "$info" 3)
+                xgit_config_ensure_runtime_dir "$identity_label" "$identity_name" "$identity_email"
+                xgit_docker_check
+                xgit_docker_image_ensure
+                xgit_hooks_verify
+                xgit_docker_run "$identity_label" "$cmd" "$@"
+            else
+                echo "Error: unknown command '$cmd'"
+                echo ""
+                xgit_print_usage
+                exit 1
+            fi
             ;;
     esac
 }
