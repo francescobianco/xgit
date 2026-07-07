@@ -25,7 +25,7 @@ xgit_docker_image_ensure() {
 xgit_docker_build_default_image() {
     docker build -t "$XGIT_DOCKER_IMAGE" - <<'XEOF'
 FROM alpine:latest
-RUN apk add --no-cache git openssh-client bash
+RUN apk add --no-cache git openssh-client bash curl ca-certificates github-cli
 RUN mkdir -p /xgit-home
 VOLUME ["/repo", "/xgit-home"]
 WORKDIR /repo
@@ -83,6 +83,33 @@ xgit_docker_run() {
         $auth_opts \
         "$XGIT_DOCKER_IMAGE" \
         git "$@"
+}
+
+xgit_docker_run_cmd() {
+    local identity
+    identity="$1"
+    shift
+
+    local runtime_dir
+    runtime_dir="$XGIT_RUNTIME_DIR/$identity"
+
+    mkdir -p "$runtime_dir"
+
+    local auth_opts
+    auth_opts=$(xgit_docker_auth_env "$identity")
+
+    docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        -v "$PWD:/repo" \
+        -v "$XGIT_HOME:/xgit-home" \
+        -e HOME="/xgit-home/runtime/$identity" \
+        -e XGIT_ACTIVE=1 \
+        -e GIT_CONFIG_GLOBAL="/xgit-home/runtime/$identity/.gitconfig" \
+        -e GIT_CONFIG_NOSYSTEM=1 \
+        -w /repo \
+        $auth_opts \
+        "$XGIT_DOCKER_IMAGE" \
+        "$@"
 }
 
 xgit_docker_shell() {

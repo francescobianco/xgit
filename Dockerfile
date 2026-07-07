@@ -5,7 +5,8 @@ RUN apk add --no-cache \
     openssh-client \
     bash \
     curl \
-    ca-certificates
+    ca-certificates \
+    github-cli
 
 RUN mkdir -p /xgit-home/runtime
 

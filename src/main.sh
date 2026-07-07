@@ -134,7 +134,11 @@ main() {
                 xgit_docker_check
                 xgit_docker_image_ensure
                 xgit_hooks_verify
-                xgit_docker_run "$identity_label" "$cmd" "$@"
+                if [ "$cmd" = "gh" ]; then
+                    xgit_docker_run_cmd "$identity_label" gh "$@"
+                else
+                    xgit_docker_run "$identity_label" "$cmd" "$@"
+                fi
             else
                 echo "Error: unknown command '$cmd'"
                 echo ""
