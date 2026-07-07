@@ -535,7 +535,6 @@ xgit_commands_auth_token() {
     echo "Token saved for identity '$identity_label'."
     echo "You can now push/pull to GitHub repositories."
     echo ""
-    echo "Verify with: git -c http.https://github.com/.extraheader=\"Authorization: token \$TOKEN\" ls-remote"
 }
 
 xgit_commands_auth_ssh() {

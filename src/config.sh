@@ -199,10 +199,10 @@ XEOF
     token=$(xgit_config_get_token "$identity")
     if [ -n "$token" ]; then
         cat >> "$runtime_dir/.gitconfig" << XEOF
-[http "https://github.com"]
-	extraheader = Authorization: token ${token}
-[http "https://api.github.com"]
-	extraheader = Authorization: token ${token}
+[url "https://x-access-token:${token}@github.com"]
+	insteadOf = https://github.com
+[url "https://x-access-token:${token}@api.github.com"]
+	insteadOf = https://api.github.com
 XEOF
     fi
 }
