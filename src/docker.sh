@@ -62,8 +62,6 @@ xgit_docker_run() {
     local identity
     identity="$1"
     shift
-    local args
-    args="$*"
 
     local runtime_dir
     runtime_dir="$XGIT_RUNTIME_DIR/$identity"
@@ -84,7 +82,7 @@ xgit_docker_run() {
         -w /repo \
         $auth_opts \
         "$XGIT_DOCKER_IMAGE" \
-        git $args
+        git "$@"
 }
 
 xgit_docker_shell() {
