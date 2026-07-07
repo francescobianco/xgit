@@ -159,15 +159,7 @@ xgit_docker_is_auth_error() {
 
     local result
     result=1
-    echo "$output" | grep -qiE \
-        "could not read (Username|Password)"\
-        "|Authentication failed"\
-        "|fatal: Authentication failed"\
-        "|remote: Invalid username or password"\
-        "|Please make sure you have the correct access rights"\
-        "|Permission denied \(publickey"\
-        "|remote: Repository not found"\
-        "|fatal: Could not read from remote repository" && result=0 || true
+    echo "$output" | grep -qiE "could not read (Username|Password)|Authentication failed|fatal: Authentication failed|remote: Invalid username or password|Please make sure you have the correct access rights|Permission denied \(publickey|remote: Repository not found|fatal: Could not read from remote repository" && result=0 || true
     return $result
 }
 
