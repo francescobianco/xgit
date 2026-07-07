@@ -6,7 +6,7 @@ XGIT_RUNTIME_DIR="$XGIT_HOME/runtime"
 XGIT_CACHE_DIR="$XGIT_HOME/cache"
 XGIT_DOCKER_DIR="$XGIT_HOME/docker"
 XGIT_SSH_DIR="$XGIT_HOME/ssh"
-XGIT_CONFIG_FILE=".git/xgitconfig"
+XGIT_CONFIG_FILE=".git/xgitconf"
 
 xgit_config_ensure_dirs() {
     mkdir -p "$XGIT_IDENTITIES_DIR" "$XGIT_RUNTIME_DIR" "$XGIT_CACHE_DIR" "$XGIT_DOCKER_DIR" "$XGIT_SSH_DIR"
